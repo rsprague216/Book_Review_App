@@ -1,0 +1,312 @@
+erDiagram
+    User ||--|| UserProfile : "has"
+    User ||--|| NotificationPreferences : "has"
+    User ||--o{ UserBook : "has"
+    User ||--o{ Review : "writes"
+    User ||--o{ Comment : "writes"
+    User ||--o{ ReviewLike : "likes"
+    User ||--o{ Activity : "performs"
+    User ||--o{ ChatMessage : "sends"
+    User ||--o{ ChatRoomMembership : "joins"
+    User ||--o{ UserMention : "mentioned in"
+    User ||--o{ CommentMention : "mentioned in"
+    User ||--o{ MessageReaction : "reacts"
+    User ||--o{ Follow : "follows (follower)"
+    User ||--o{ Follow : "followed by (following)"
+    User ||--o{ UserBlock : "blocks (blocker)"
+    User ||--o{ UserBlock : "blocked by (blocked)"
+    User ||--o{ UserReport : "reports (reporter)"
+    User ||--o{ UserReport : "reported (reported_user)"
+    User ||--o{ ReadingGoal : "sets"
+    User ||--o{ BookList : "creates"
+    User ||--o{ BookListLike : "likes"
+
+    Book ||--o{ UserBook : "added by"
+    Book ||--o{ Review : "reviewed in"
+    Book ||--|| ChatRoom : "has"
+    Book ||--o{ Activity : "featured in"
+    Book ||--o{ TrendingBook : "trending"
+    Book ||--o{ BookListItem : "in lists"
+
+    Review ||--o{ Comment : "has"
+    Review ||--o{ ReviewLike : "receives"
+    Review ||--o{ Activity : "generates"
+    Review ||--o{ UserReport : "reported"
+
+    Comment ||--o{ Comment : "replies to (threading)"
+    Comment ||--o{ CommentMention : "contains"
+    Comment ||--o{ UserReport : "reported"
+
+    ChatRoom ||--o{ ChatMessage : "contains"
+    ChatRoom ||--o{ ChatRoomMembership : "has members"
+
+    ChatMessage ||--o{ UserMention : "contains"
+    ChatMessage ||--o{ MessageReaction : "receives"
+    ChatMessage ||--o{ ChatMessage : "replies to (threading)"
+    ChatMessage ||--o{ UserReport : "reported"
+
+    BookList ||--o{ BookListItem : "contains"
+    BookList ||--o{ BookListLike : "receives"
+
+    User {
+        int id PK
+        string username UK
+        string email UK
+        string password
+        datetime date_joined
+        boolean is_active
+    }
+
+    UserProfile {
+        int id PK
+        int user_id FK
+        text bio
+        string avatar_url
+        string location
+        string website
+        int annual_reading_goal
+        string profile_visibility
+        boolean show_reading_activity
+        boolean allow_others_see_shelves
+        boolean allow_others_see_stats
+        int username_changes_count
+        datetime last_username_change_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    NotificationPreferences {
+        int id PK
+        int user_id FK
+        boolean email_new_follower
+        boolean email_review_comment
+        boolean email_comment_reply
+        boolean email_chat_mention
+        boolean email_comment_mention
+        boolean email_weekly_summary
+        boolean push_chat_message
+        boolean push_activity
+        boolean push_new_releases
+        boolean push_recommendation
+        datetime created_at
+        datetime updated_at
+    }
+
+    Book {
+        int id PK
+        string google_books_id UK
+        string title
+        text authors
+        string cover_image_url
+        string thumbnail_url
+        text description
+        string isbn_10
+        string isbn_13
+        int page_count
+        string published_date
+        string publisher
+        text categories
+        string language
+        float average_rating
+        int ratings_count
+        datetime created_at
+        datetime updated_at
+    }
+
+    UserBook {
+        int id PK
+        int user_id FK
+        int book_id FK
+        string shelf_status
+        int current_page
+        int total_pages
+        date start_date
+        date finish_date
+        datetime created_at
+        datetime updated_at
+    }
+
+    Review {
+        int id PK
+        int user_id FK
+        int book_id FK
+        int rating
+        string review_title
+        text review_text
+        boolean contains_spoilers
+        datetime created_at
+        datetime updated_at
+        int likes_count
+    }
+
+    ReviewLike {
+        int id PK
+        int user_id FK
+        int review_id FK
+        datetime created_at
+    }
+
+    Comment {
+        int id PK
+        int user_id FK
+        int review_id FK
+        text comment_text
+        int parent_comment_id FK
+        datetime created_at
+        datetime updated_at
+        boolean is_deleted
+        datetime deleted_at
+    }
+
+    CommentMention {
+        int id PK
+        int comment_id FK
+        int mentioned_user_id FK
+        datetime created_at
+        boolean is_read
+        datetime read_at
+    }
+
+    Follow {
+        int id PK
+        int follower_id FK
+        int following_id FK
+        datetime created_at
+    }
+
+    UserBlock {
+        int id PK
+        int blocker_id FK
+        int blocked_id FK
+        text reason
+        datetime created_at
+    }
+
+    UserReport {
+        int id PK
+        int reporter_id FK
+        int reported_user_id FK
+        int reported_review_id FK
+        int reported_comment_id FK
+        int reported_message_id FK
+        string report_type
+        text description
+        string status
+        int reviewed_by_id FK
+        datetime reviewed_at
+        text resolution_notes
+        datetime created_at
+    }
+
+    Activity {
+        int id PK
+        int user_id FK
+        string activity_type
+        int book_id FK
+        int review_id FK
+        int comment_id FK
+        int target_user_id FK
+        json metadata
+        boolean is_read
+        datetime read_at
+        datetime created_at
+    }
+
+    ChatRoom {
+        int id PK
+        int book_id FK
+        datetime created_at
+        boolean is_active
+        int message_count
+        datetime last_activity_at
+        int messages_today
+        date last_message_reset_date
+    }
+
+    ChatMessage {
+        int id PK
+        int chat_room_id FK
+        int user_id FK
+        text message_text
+        int parent_message_id FK
+        datetime created_at
+        datetime edited_at
+        boolean is_deleted
+        datetime deleted_at
+    }
+
+    MessageReaction {
+        int id PK
+        int message_id FK
+        int user_id FK
+        string reaction_type
+        datetime created_at
+    }
+
+    UserMention {
+        int id PK
+        int message_id FK
+        int mentioned_user_id FK
+        datetime created_at
+        boolean is_read
+    }
+
+    ChatRoomMembership {
+        int id PK
+        int chat_room_id FK
+        int user_id FK
+        datetime joined_at
+        datetime last_read_at
+        boolean is_muted
+        datetime muted_at
+    }
+
+    ReadingGoal {
+        int id PK
+        int user_id FK
+        int year
+        int target_books
+        datetime created_at
+        datetime updated_at
+    }
+
+    BookList {
+        int id PK
+        int user_id FK
+        string name
+        text description
+        boolean is_public
+        datetime created_at
+        datetime updated_at
+        int books_count
+    }
+
+    BookListItem {
+        int id PK
+        int book_list_id FK
+        int book_id FK
+        int position
+        text note
+        datetime added_at
+        int added_by_id FK
+    }
+
+    BookListLike {
+        int id PK
+        int user_id FK
+        int book_list_id FK
+        datetime created_at
+    }
+
+    TrendingBook {
+        int id PK
+        int book_id FK
+        string time_period
+        int add_count
+        int review_count
+        float average_rating
+        int rank
+        date period_start
+        date period_end
+        datetime last_updated
+    }
