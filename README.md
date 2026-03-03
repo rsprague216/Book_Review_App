@@ -1,33 +1,51 @@
-# Full-Stack App - React + Vite + TailwindCSS + Django
+# BookBuddy
 
-A modern full-stack application template with React frontend and Django backend.
+A full-stack book tracking and discovery app — think Goodreads — for logging your reading, writing reviews, and connecting with other readers. Built with React + Django.
 
 ## Tech Stack
 
 ### Frontend
-- **React** - UI library
-- **Vite** - Build tool and dev server
-- **TailwindCSS v4** - Utility-first CSS framework
+- **React 19** — UI library
+- **Vite 7** — Build tool and dev server
+- **TailwindCSS v4** — Utility-first CSS (PostCSS pipeline, `@theme` design tokens)
+- **Axios** — HTTP client with JWT interceptors
+- **React Router v6** — Client-side routing
 
 ### Backend
-- **Django 6** - Python web framework
-- **Django REST Framework** - API toolkit
-- **Django CORS Headers** - Cross-origin resource sharing
+- **Django 6** — Python web framework
+- **Django REST Framework 3.16** — API toolkit
+- **djangorestframework-simplejwt** — JWT authentication
+- **django-cors-headers** — Cross-origin resource sharing
+- **django-environ** — Environment variable management
+- **Argon2** — Password hashing (via argon2-cffi)
+
+### Database
+- **SQLite** — Development
+- **PostgreSQL** — Planned for production
 
 ## Project Structure
 
 ```
 .
-├── backend/          # Django backend
-│   ├── api/          # API app
-│   ├── config/       # Django project settings
-│   ├── manage.py     # Django management script
-│   └── venv/         # Python virtual environment
-├── frontend/         # React + Vite frontend
-│   ├── src/          # Source files
-│   ├── public/       # Static assets
-│   └── package.json  # Node dependencies
-└── README.md         # This file
+├── backend/
+│   ├── api/                # Main Django app (models, views, serializers, URLs, tests)
+│   ├── config/             # Django project settings + URL routing
+│   ├── manage.py
+│   ├── requirements.txt
+│   └── venv/
+├── frontend/
+│   ├── src/
+│   │   ├── api/            # Axios client + JWT interceptors
+│   │   ├── components/
+│   │   │   ├── auth/       # LoginForm, RegisterForm, PasswordChangeForm
+│   │   │   └── layout/     # Header, Navbar, ProtectedRoute
+│   │   ├── contexts/       # AuthContext (global auth state)
+│   │   ├── pages/          # Page components (Login, Register, Dashboard, Profile)
+│   │   ├── App.jsx         # Router root + route definitions
+│   │   ├── main.jsx        # Entry point
+│   │   └── index.css       # Tailwind import + design tokens
+│   └── package.json
+└── README.md
 ```
 
 ## Getting Started
@@ -39,75 +57,101 @@ A modern full-stack application template with React frontend and Django backend.
 
 ### Backend Setup
 
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
+```bash
+cd backend
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-2. Activate the virtual environment:
-   ```bash
-   source venv/bin/activate
-   ```
+Create a `.env` file in `backend/`:
+```
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+```
 
-3. Run migrations:
-   ```bash
-   python manage.py migrate
-   ```
+Then run migrations and start the server:
+```bash
+python manage.py migrate
+python manage.py runserver
+```
 
-4. Start the Django development server:
-   ```bash
-   python manage.py runserver
-   ```
-
-The backend will be available at [http://localhost:8000](http://localhost:8000)
+Backend available at http://localhost:8000
 
 ### Frontend Setup
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-2. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
+Frontend available at http://localhost:5173
 
-The frontend will be available at [http://localhost:5173](http://localhost:5173)
+> Both servers must run simultaneously. CORS is configured to allow `localhost:5173`.
 
 ## API Endpoints
 
-- `GET /api/hello/` - Test endpoint that returns a welcome message
+All auth endpoints are under `/api/auth/`:
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|:----:|-------------|
+| POST | `/api/auth/register/` | No | Create a new account |
+| POST | `/api/auth/login/` | No | Returns access + refresh JWT tokens |
+| POST | `/api/auth/logout/` | Yes | Blacklists refresh token |
+| POST | `/api/auth/token/refresh/` | No | Exchange refresh token for new access token |
+| GET/PATCH | `/api/auth/me/` | Yes | Get or update the current user |
+| GET/PATCH | `/api/auth/profile/` | Yes | Get or update the current user's profile |
+| POST | `/api/auth/password_change/` | Yes | Change password (requires current password) |
+
+Authentication uses JWT (`Authorization: Bearer <token>` header). Access tokens expire after 15 minutes; refresh tokens last 7 days with rotation and blacklisting.
 
 ## Development
 
-### Backend
-- API views are in [backend/api/views.py](backend/api/views.py)
-- URL routing in [backend/api/urls.py](backend/api/urls.py)
-- Settings in [backend/config/settings.py](backend/config/settings.py)
+### Useful Commands
 
-### Frontend
-- Main app component in [frontend/src/App.jsx](frontend/src/App.jsx)
-- Tailwind styles in [frontend/src/index.css](frontend/src/index.css)
-- Vite config in [frontend/vite.config.js](frontend/vite.config.js)
+**Backend** (from `backend/` with venv active):
+```bash
+python manage.py test            # Run tests (11 passing)
+python manage.py makemigrations  # Generate migrations after model changes
+python manage.py createsuperuser
+```
 
-## Features
+**Frontend** (from `frontend/`):
+```bash
+npm run build    # Production build
+npm run lint     # ESLint
+npm run preview  # Preview production build
+```
 
-- Hot module replacement (HMR) for instant updates
-- TailwindCSS v4 for modern styling
-- CORS configured for local development
-- Django REST Framework for API development
-- SQLite database (default)
+### Key Files
+- Backend views: [backend/api/views.py](backend/api/views.py)
+- Backend models: [backend/api/models.py](backend/api/models.py)
+- URL routing: [backend/api/urls.py](backend/api/urls.py)
+- Django settings: [backend/config/settings.py](backend/config/settings.py)
+- Axios client: [frontend/src/api/client.js](frontend/src/api/client.js)
+- Auth context: [frontend/src/contexts/AuthContext.jsx](frontend/src/contexts/AuthContext.jsx)
+- Router root: [frontend/src/App.jsx](frontend/src/App.jsx)
 
-## Next Steps
+## Current Status
 
-1. Create additional API endpoints in the backend
-2. Build out your React components
-3. Add authentication (JWT, OAuth, etc.)
-4. Set up a production database (PostgreSQL, MySQL)
-5. Configure environment variables
-6. Add testing (pytest for backend, Vitest for frontend)
+**Phase 1 — Foundation & Authentication: Complete ✅**
+- JWT authentication with token rotation and blacklisting
+- Argon2 password hashing
+- User + UserProfile model with full REST endpoints
+- Password change endpoint
+- Axios client with silent token refresh on 401
+- Global auth state via React Context (session persists across page refreshes)
+- Protected route guarding with layout route pattern
+- Login, Register, and Profile pages with styled form components
+- 11 passing backend tests
+
+## Planned Phases
+
+- **Phase 2** — Book search and discovery (Open Library / Google Books API)
+- **Phase 3** — Reading lists, reviews, and ratings
+- **Phase 4** — Social features (following users, activity feeds)
+- **Phase 5** — File uploads (avatar images via S3), password recovery via email
 
 ## License
 
-This project is open source and available under the MIT License.
+MIT
